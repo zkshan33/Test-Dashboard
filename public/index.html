@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GA Zee — Control Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0E1310;
+    --panel: #161D19;
+    --panel-border: #262F29;
+    --ink: #EDEAE2;
+    --ink-dim: #8C978F;
+    --amber: #F2A65A;
+    --sage: #7FA588;
+    --rose: #C97064;
+    --mono: 'IBM Plex Mono', monospace;
+    --serif: 'Fraunces', serif;
+    --sans: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background: var(--bg); color: var(--ink); font-family: var(--sans); min-height:100vh; padding: 32px 20px 60px; }
+  .wrap{max-width: 980px; margin:0 auto;}
+  header{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--panel-border); margin-bottom: 28px; }
+  .loc-name{font-family: var(--serif); font-weight:600; font-size: 30px; letter-spacing: -0.01em;}
+  .loc-sub{color:var(--ink-dim); font-size:13px; margin-top:4px; font-family: var(--mono);}
+  .status{display:flex; align-items:center; gap:9px; font-family: var(--mono); font-size: 12px; color: var(--ink-dim);}
+  .dot{width:7px; height:7px; border-radius:50%; background: var(--sage); box-shadow: 0 0 0 0 rgba(127,165,136,.6); animation: pulse 2s infinite;}
+  .dot.off{background:var(--rose); animation:none;}
+  .dot.loading{background:var(--amber);}
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(127,165,136,.55);} 70%{box-shadow:0 0 0 7px rgba(127,165,136,0);} 100%{box-shadow:0 0 0 0 rgba(127,165,136,0);} }
+  .hero{display:flex; align-items:baseline; gap:18px; margin-bottom:36px; flex-wrap:wrap;}
+  .hero-num{font-family: var(--mono); font-weight:600; font-size: 74px; line-height:1; color: var(--ink);}
+  .hero-label{color:var(--ink-dim); font-size:14px; max-width:220px; line-height:1.4;}
+  .grid{display:grid; grid-template-columns: 1.3fr 1fr; gap:18px;}
+  @media (max-width:720px){ .grid{grid-template-columns: 1fr;} .hero-num{font-size:56px;} }
+  .panel{ background: var(--panel); border:1px solid var(--panel-border); border-radius: 3px; padding: 22px; }
+  .panel h3{ font-family: var(--mono); font-size:12px; color:var(--ink-dim); font-weight:500; margin-bottom:18px; letter-spacing:0.02em; }
+  .tag-row{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+  .tag-row:last-child{margin-bottom:0;}
+  .tag-name{width:56px; font-family:var(--mono); font-size:12px; color:var(--ink-dim); flex-shrink:0;}
+  .bar-track{flex:1; height:8px; background:#0E1310; border-radius:2px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--amber); border-radius:2px; transition: width .6s ease;}
+  .tag-count{width:26px; text-align:right; font-family:var(--mono); font-size:13px; color:var(--ink);}
+  .stat-pair{display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom:1px solid var(--panel-border);}
+  .stat-pair:last-child{border-bottom:none;}
+  .stat-pair .k{color:var(--ink-dim); font-size:13px;}
+  .stat-pair .v{font-family:var(--mono); font-size:20px; color:var(--ink);}
+  .pipeline-name{font-size:13px; color:var(--ink-dim); margin-top:6px;}
+  footer{ margin-top:26px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .updated{font-family:var(--mono); font-size:11px; color:var(--ink-dim);}
+  button{ background:none; border:1px solid var(--panel-border); color:var(--ink); font-family:var(--mono); font-size:12px; padding:9px 16px; border-radius:2px; cursor:pointer; transition: border-color .2s ease, color .2s ease; }
+  button:hover{border-color:var(--amber); color:var(--amber);}
+  button:disabled{opacity:.5; cursor:default;}
+  .toggle{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; color:var(--ink-dim);}
+  .switch{position:relative; width:32px; height:18px;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider{position:absolute; inset:0; background:#262F29; border-radius:9px; cursor:pointer; transition:.2s;}
+  .slider:before{content:""; position:absolute; width:14px; height:14px; left:2px; top:2px; background:var(--ink-dim); border-radius:50%; transition:.2s;}
+  input:checked + .slider{background:#3a4a3d;}
+  input:checked + .slider:before{transform:translateX(14px); background:var(--sage);}
+  .err{color:var(--rose); font-family:var(--mono); font-size:12px; margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="loc-name">GA Zee</div>
+      <div class="loc-sub">location · <span id="locId">—</span></div>
+    </div>
+    <div class="status">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">live</span>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-num" id="totalContacts">—</div>
+    <div class="hero-label">total contacts across the account, refreshed straight from GoHighLevel</div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>CONTACTS BY TAG</h3>
+      <div id="tagBars"></div>
+    </div>
+    <div class="panel">
+      <h3>PIPELINE &amp; INBOX</h3>
+      <div class="stat-pair"><span class="k">open opportunities</span><span class="v" id="totalOpps">—</span></div>
+      <div class="stat-pair"><span class="k">active conversations</span><span class="v" id="totalConvos">—</span></div>
+      <div class="pipeline-name" id="pipelineName"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div>
+      <button id="refreshBtn">Refresh now</button>
+      <div class="err" id="errBox" style="display:none;"></div>
+    </div>
+    <div style="display:flex; align-items:center; gap:18px;">
+      <label class="toggle">
+        <label class="switch"><input type="checkbox" id="autoToggle" checked><span class="slider"></span></label>
+        auto-refresh · 45s
+      </label>
+      <span class="updated" id="updatedAt">not yet loaded</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+const TAGS = ["tag 1", "tag 2", "tag 3", "tag 4"];
+let autoTimer = null;
+const $ = (id) => document.getElementById(id);
+
+function setStatus(mode, text){
+  const dot = $("statusDot");
+  dot.className = "dot" + (mode === "loading" ? " loading" : mode === "off" ? " off" : "");
+  $("statusText").textContent = text;
+}
+
+function renderTagBars(tags){
+  const max = Math.max(1, ...tags.map(t => t.count));
+  $("tagBars").innerHTML = tags.map(t => `
+    <div class="tag-row">
+      <span class="tag-name">${t.name}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(t.count/max*100).toFixed(0)}%"></div></div>
+      <span class="tag-count">${t.count}</span>
+    </div>
+  `).join("");
+}
+
+function render(data){
+  $("totalContacts").textContent = data.totalContacts ?? "—";
+  $("totalOpps").textContent = data.totalOpportunities ?? "—";
+  $("totalConvos").textContent = data.totalConversations ?? "—";
+  $("pipelineName").textContent = data.pipelineName ? `pipeline: ${data.pipelineName}` : "";
+  renderTagBars(data.tags && data.tags.length ? data.tags : TAGS.map(n => ({name:n, count:0})));
+  $("updatedAt").textContent = "updated " + new Date().toLocaleTimeString();
+}
+
+async function fetchLiveData(){
+  $("errBox").style.display = "none";
+  $("refreshBtn").disabled = true;
+  setStatus("loading", "syncing…");
+  try{
+    const response = await fetch("/api/dashboard");
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    render(data);
+    setStatus("on", "live");
+  }catch(err){
+    console.error(err);
+    $("errBox").textContent = "Couldn't refresh: " + err.message;
+    $("errBox").style.display = "block";
+    setStatus("off", "sync failed");
+  }finally{
+    $("refreshBtn").disabled = false;
+  }
+}
+
+function scheduleAuto(){
+  if(autoTimer) clearInterval(autoTimer);
+  if($("autoToggle").checked){ autoTimer = setInterval(fetchLiveData, 45000); }
+}
+
+$("refreshBtn").addEventListener("click", fetchLiveData);
+$("autoToggle").addEventListener("change", scheduleAuto);
+renderTagBars(TAGS.map(n => ({name:n, count:0})));
+fetchLiveData();
+scheduleAuto();
+</script>
+</body>
+</html>
