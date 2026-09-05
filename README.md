@@ -2,9 +2,15 @@
 
 ## Structure
 ```
-public/index.html   → frontend (static, no secrets)
-api/dashboard.js     → serverless function (holds the token, calls GHL directly)
+public/index.html   → frontend: Pipeline Pulse-style dashboard — metric cards,
+                       clickable stage snapshot, filters (user/stage/tag/date),
+                       paginated opportunity table
+api/meta.js          → serverless function: pipelines, tags, and assigned users
+api/opportunities.js → serverless function: full opportunity list (filtering
+                       happens client-side for instant response)
 ```
+
+Both API files hold the GHL token server-side only — it never reaches the browser.
 
 ## Step 1 — Get a GHL Private Integration Token
 1. In GoHighLevel, go to the **GA Zee** sub-account.

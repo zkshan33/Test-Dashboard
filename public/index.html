@@ -2,174 +2,361 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>GA Zee — Control Room</title>
+<title>GA Zee — Pipeline Pulse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #0E1310;
-    --panel: #161D19;
-    --panel-border: #262F29;
-    --ink: #EDEAE2;
-    --ink-dim: #8C978F;
-    --amber: #F2A65A;
-    --sage: #7FA588;
-    --rose: #C97064;
-    --mono: 'IBM Plex Mono', monospace;
-    --serif: 'Fraunces', serif;
-    --sans: 'Inter', sans-serif;
+    --bg:#0B0D12; --panel:#12151C; --panel-alt:#161A22; --border:#1F2430; --border-strong:#2A3040;
+    --ink:#F4F5F7; --ink-dim:#8A90A0; --ink-faint:#5C6272;
+    --blue:#4F8EF7; --purple:#8B5CF6; --pink:#EC4899; --orange:#F97316;
+    --yellow:#D4A72C; --green:#22C55E; --teal:#14B8C4; --red:#EF4444;
+    --font:'Inter',sans-serif;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{ background: var(--bg); color: var(--ink); font-family: var(--sans); min-height:100vh; padding: 32px 20px 60px; }
-  .wrap{max-width: 980px; margin:0 auto;}
-  header{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--panel-border); margin-bottom: 28px; }
-  .loc-name{font-family: var(--serif); font-weight:600; font-size: 30px; letter-spacing: -0.01em;}
-  .loc-sub{color:var(--ink-dim); font-size:13px; margin-top:4px; font-family: var(--mono);}
-  .status{display:flex; align-items:center; gap:9px; font-family: var(--mono); font-size: 12px; color: var(--ink-dim);}
-  .dot{width:7px; height:7px; border-radius:50%; background: var(--sage); box-shadow: 0 0 0 0 rgba(127,165,136,.6); animation: pulse 2s infinite;}
-  .dot.off{background:var(--rose); animation:none;}
-  .dot.loading{background:var(--amber);}
-  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(127,165,136,.55);} 70%{box-shadow:0 0 0 7px rgba(127,165,136,0);} 100%{box-shadow:0 0 0 0 rgba(127,165,136,0);} }
-  .hero{display:flex; align-items:baseline; gap:18px; margin-bottom:36px; flex-wrap:wrap;}
-  .hero-num{font-family: var(--mono); font-weight:600; font-size: 74px; line-height:1; color: var(--ink);}
-  .hero-label{color:var(--ink-dim); font-size:14px; max-width:220px; line-height:1.4;}
-  .grid{display:grid; grid-template-columns: 1.3fr 1fr; gap:18px;}
-  @media (max-width:720px){ .grid{grid-template-columns: 1fr;} .hero-num{font-size:56px;} }
-  .panel{ background: var(--panel); border:1px solid var(--panel-border); border-radius: 3px; padding: 22px; }
-  .panel h3{ font-family: var(--mono); font-size:12px; color:var(--ink-dim); font-weight:500; margin-bottom:18px; letter-spacing:0.02em; }
-  .tag-row{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
-  .tag-row:last-child{margin-bottom:0;}
-  .tag-name{width:56px; font-family:var(--mono); font-size:12px; color:var(--ink-dim); flex-shrink:0;}
-  .bar-track{flex:1; height:8px; background:#0E1310; border-radius:2px; overflow:hidden;}
-  .bar-fill{height:100%; background:var(--amber); border-radius:2px; transition: width .6s ease;}
-  .tag-count{width:26px; text-align:right; font-family:var(--mono); font-size:13px; color:var(--ink);}
-  .stat-pair{display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom:1px solid var(--panel-border);}
-  .stat-pair:last-child{border-bottom:none;}
-  .stat-pair .k{color:var(--ink-dim); font-size:13px;}
-  .stat-pair .v{font-family:var(--mono); font-size:20px; color:var(--ink);}
-  .pipeline-name{font-size:13px; color:var(--ink-dim); margin-top:6px;}
-  footer{ margin-top:26px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
-  .updated{font-family:var(--mono); font-size:11px; color:var(--ink-dim);}
-  button{ background:none; border:1px solid var(--panel-border); color:var(--ink); font-family:var(--mono); font-size:12px; padding:9px 16px; border-radius:2px; cursor:pointer; transition: border-color .2s ease, color .2s ease; }
-  button:hover{border-color:var(--amber); color:var(--amber);}
-  button:disabled{opacity:.5; cursor:default;}
-  .toggle{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11px; color:var(--ink-dim);}
-  .switch{position:relative; width:32px; height:18px;}
-  .switch input{opacity:0; width:0; height:0;}
-  .slider{position:absolute; inset:0; background:#262F29; border-radius:9px; cursor:pointer; transition:.2s;}
-  .slider:before{content:""; position:absolute; width:14px; height:14px; left:2px; top:2px; background:var(--ink-dim); border-radius:50%; transition:.2s;}
-  input:checked + .slider{background:#3a4a3d;}
-  input:checked + .slider:before{transform:translateX(14px); background:var(--sage);}
-  .err{color:var(--rose); font-family:var(--mono); font-size:12px; margin-top:10px;}
+  body{background:var(--bg); color:var(--ink); font-family:var(--font); min-height:100vh; padding:28px 24px 60px;}
+  .wrap{max-width:1140px; margin:0 auto;}
+
+  header{display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:1px solid var(--border); margin-bottom:28px; flex-wrap:wrap; gap:14px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,var(--purple),var(--pink)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; color:#fff;}
+  .brand-name{font-weight:700; font-size:17px;}
+  .header-right{display:flex; align-items:center; gap:12px;}
+  .live-pill{display:flex; align-items:center; gap:6px; background:rgba(34,197,94,0.12); color:var(--green); font-size:11px; font-weight:600; padding:6px 12px; border-radius:20px; letter-spacing:.03em;}
+  .live-dot{width:6px; height:6px; border-radius:50%; background:var(--green);}
+  .live-pill.off{background:rgba(239,68,68,0.12); color:var(--red);}
+  .live-pill.off .live-dot{background:var(--red);}
+  button{font-family:var(--font); cursor:pointer;}
+  .refresh-btn{background:var(--panel-alt); border:1px solid var(--border-strong); color:var(--ink); font-size:12px; font-weight:600; padding:9px 16px; border-radius:8px;}
+  .refresh-btn:hover{border-color:var(--purple);}
+  .refresh-btn:disabled{opacity:.5;}
+
+  .eyebrow{font-size:11px; font-weight:600; letter-spacing:.08em; color:var(--ink-faint); margin-bottom:10px;}
+  h1{font-size:30px; font-weight:700; line-height:1.25; margin-bottom:10px;}
+  h1 .accent{color:var(--purple);}
+  .sub{color:var(--ink-dim); font-size:14px; line-height:1.6; max-width:640px; margin-bottom:28px;}
+
+  .metrics{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:32px;}
+  .metric{background:var(--panel); border:1px solid var(--border); border-top:3px solid var(--m-color); border-radius:10px; padding:16px 18px;}
+  .metric .lbl{font-size:12px; color:var(--ink-dim); margin-bottom:10px;}
+  .metric .num{font-size:28px; font-weight:700; margin-bottom:6px;}
+  .metric .note{font-size:12px; color:var(--ink-faint);}
+  .metric .note.pos{color:var(--green);}
+  .metric .note.warn{color:var(--orange);}
+
+  h2{font-size:17px; font-weight:700; margin-bottom:14px;}
+  .section-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px;}
+  .hint{font-size:12px; color:var(--ink-faint);}
+
+  .stage-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:32px;}
+  .stage-card{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; cursor:pointer; transition:border-color .15s;}
+  .stage-card:hover{border-color:var(--s-color);}
+  .stage-card.active{border-color:var(--s-color); background:var(--panel-alt);}
+  .badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; margin-bottom:12px; background:var(--s-bg); color:var(--s-color);}
+  .badge-dot{width:6px; height:6px; border-radius:50%; background:var(--s-color);}
+  .stage-card .num{font-size:22px; font-weight:700; margin-bottom:3px;}
+  .stage-card .val{font-size:12px; color:var(--ink-faint);}
+
+  .filters{display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-bottom:14px;}
+  .field{display:flex; flex-direction:column; gap:6px; min-width:130px;}
+  .field label{font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--ink-faint);}
+  select, input[type=date]{
+    background:var(--panel-alt); border:1px solid var(--border-strong); color:var(--ink);
+    font-family:var(--font); font-size:13px; padding:9px 10px; border-radius:7px;
+  }
+  input[type=date]:focus, select:focus{outline:none; border-color:var(--purple); box-shadow:0 0 0 3px rgba(139,92,246,0.2);}
+  .clear-btn{background:none; border:1px solid var(--border-strong); color:var(--ink-dim); font-size:12px; padding:9px 16px; border-radius:7px;}
+  .clear-btn:hover{border-color:var(--ink-dim); color:var(--ink);}
+
+  .showing{font-size:12px; color:var(--ink-faint); margin-bottom:12px;}
+
+  .table-panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden;}
+  table{width:100%; border-collapse:collapse;}
+  th{text-align:left; font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--ink-faint); padding:12px 16px; border-bottom:1px solid var(--border);}
+  td{padding:14px 16px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,0.015);}
+  .opp-name{font-weight:600;}
+  .opp-sub{font-size:11px; color:var(--ink-faint); margin-top:2px;}
+  .assignee{display:flex; align-items:center; gap:8px;}
+  .avatar{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0;}
+  .pill{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px;}
+  .val-cell{font-weight:700;}
+  .empty-row td{padding:48px 16px; text-align:center; color:var(--ink-faint);}
+
+  .pagination{display:flex; justify-content:flex-end; align-items:center; gap:10px; padding:14px 16px; border-top:1px solid var(--border);}
+  .page-btn{background:var(--panel-alt); border:1px solid var(--border-strong); color:var(--ink); font-size:12px; padding:7px 14px; border-radius:7px;}
+  .page-btn:hover:not(:disabled){border-color:var(--purple);}
+  .page-btn:disabled{opacity:.4; cursor:default;}
+  .page-info{font-size:12px; color:var(--ink-faint);}
+
+  .err{color:var(--red); font-size:12px; margin-bottom:14px;}
+
+  @media (max-width:860px){ .metrics, .stage-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .metrics, .stage-grid{grid-template-columns:1fr;} table{font-size:12px;} }
 </style>
 </head>
 <body>
 <div class="wrap">
+
   <header>
-    <div>
-      <div class="loc-name">GA Zee</div>
-      <div class="loc-sub">location · <span id="locId">—</span></div>
+    <div class="brand">
+      <div class="brand-mark">G</div>
+      <div class="brand-name">GA Zee</div>
     </div>
-    <div class="status">
-      <span class="dot" id="statusDot"></span>
-      <span id="statusText">live</span>
+    <div class="header-right">
+      <div class="live-pill" id="livePill"><span class="live-dot"></span><span id="liveText">LIVE — REAL DATA</span></div>
+      <button class="refresh-btn" id="refreshBtn">Refresh now</button>
     </div>
   </header>
 
-  <div class="hero">
-    <div class="hero-num" id="totalContacts">—</div>
-    <div class="hero-label">total contacts across the account, refreshed straight from GoHighLevel</div>
+  <div class="eyebrow">SALES PIPELINE · LIVE ACCOUNT</div>
+  <h1>Every <span class="accent">opportunity</span>, every stage, one view.</h1>
+  <div class="sub">Filter by rep, by stage, or by date — and see exactly where deals are moving and where they're stuck.</div>
+
+  <div class="err" id="errBox" style="display:none;"></div>
+
+  <div class="metrics" id="metrics"></div>
+
+  <div class="section-head">
+    <h2>Stage snapshot</h2>
+    <span class="hint">Tap a stage below to filter the table</span>
+  </div>
+  <div class="stage-grid" id="stageGrid"></div>
+
+  <h2>Opportunities</h2>
+  <div class="filters">
+    <div class="field"><label>USER</label><select id="userFilter"><option value="">All users</option></select></div>
+    <div class="field"><label>STAGE</label><select id="stageFilter"><option value="">All stages</option></select></div>
+    <div class="field"><label>TAG</label><select id="tagFilter"><option value="">All tags</option></select></div>
+    <div class="field"><label>FROM DATE</label><input type="date" id="startDate"></div>
+    <div class="field"><label>TO DATE</label><input type="date" id="endDate"></div>
+    <button class="clear-btn" id="clearBtn">Clear filters</button>
   </div>
 
-  <div class="grid">
-    <div class="panel">
-      <h3>CONTACTS BY TAG</h3>
-      <div id="tagBars"></div>
-    </div>
-    <div class="panel">
-      <h3>PIPELINE &amp; INBOX</h3>
-      <div class="stat-pair"><span class="k">open opportunities</span><span class="v" id="totalOpps">—</span></div>
-      <div class="stat-pair"><span class="k">active conversations</span><span class="v" id="totalConvos">—</span></div>
-      <div class="pipeline-name" id="pipelineName"></div>
+  <div class="showing" id="showingText">Loading…</div>
+
+  <div class="table-panel">
+    <table>
+      <thead>
+        <tr>
+          <th>OPPORTUNITY</th><th>ASSIGNED TO</th><th>STAGE</th><th>TAG</th>
+          <th>VALUE</th><th>CREATED</th><th>DAYS IN STAGE</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr class="empty-row"><td colspan="7">Loading…</td></tr></tbody>
+    </table>
+    <div class="pagination">
+      <span class="page-info" id="pageInfo"></span>
+      <button class="page-btn" id="prevBtn">← Prev</button>
+      <button class="page-btn" id="nextBtn">Next →</button>
     </div>
   </div>
 
-  <footer>
-    <div>
-      <button id="refreshBtn">Refresh now</button>
-      <div class="err" id="errBox" style="display:none;"></div>
-    </div>
-    <div style="display:flex; align-items:center; gap:18px;">
-      <label class="toggle">
-        <label class="switch"><input type="checkbox" id="autoToggle" checked><span class="slider"></span></label>
-        auto-refresh · 45s
-      </label>
-      <span class="updated" id="updatedAt">not yet loaded</span>
-    </div>
-  </footer>
 </div>
 
 <script>
-const TAGS = ["tag 1", "tag 2", "tag 3", "tag 4"];
-let autoTimer = null;
 const $ = (id) => document.getElementById(id);
+const COLORS = [
+  {name:"blue",   c:"var(--blue)",   bg:"rgba(79,142,247,0.12)"},
+  {name:"purple", c:"var(--purple)", bg:"rgba(139,92,246,0.12)"},
+  {name:"pink",   c:"var(--pink)",   bg:"rgba(236,72,153,0.12)"},
+  {name:"orange", c:"var(--orange)", bg:"rgba(249,115,22,0.12)"},
+  {name:"yellow", c:"var(--yellow)", bg:"rgba(212,167,44,0.12)"},
+  {name:"green",  c:"var(--green)",  bg:"rgba(34,197,94,0.12)"},
+  {name:"teal",   c:"var(--teal)",   bg:"rgba(20,184,196,0.12)"},
+  {name:"red",    c:"var(--red)",    bg:"rgba(239,68,68,0.12)"},
+];
 
-function setStatus(mode, text){
-  const dot = $("statusDot");
-  dot.className = "dot" + (mode === "loading" ? " loading" : mode === "off" ? " off" : "");
-  $("statusText").textContent = text;
+let allOpps = [];
+let stages = [];
+let stageColor = {};
+let tagColor = {};
+let userNames = {};
+let activeStageFilter = "";
+let page = 1;
+const PAGE_SIZE = 10;
+let autoTimer = null;
+
+function colorFor(map, key, palette){
+  if(!(key in map)){
+    const idx = Object.keys(map).length % palette.length;
+    map[key] = palette[idx];
+  }
+  return map[key];
+}
+function avatarColor(name){
+  let hash = 0;
+  for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return COLORS[Math.abs(hash) % COLORS.length].c;
+}
+function initials(name){
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0]||"") + (parts[1]?.[0]||"")).toUpperCase() || "?";
+}
+function fmtMoney(v){ return "$" + Number(v||0).toLocaleString(undefined,{maximumFractionDigits:0}); }
+function fmtDate(iso){ return iso ? new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}) : "—"; }
+function daysSince(iso){ if(!iso) return 0; return Math.max(0, Math.floor((Date.now()-new Date(iso).getTime())/86400000)); }
+
+function setLive(ok, label){
+  $("livePill").className = "live-pill" + (ok ? "" : " off");
+  $("liveText").textContent = label;
 }
 
-function renderTagBars(tags){
-  const max = Math.max(1, ...tags.map(t => t.count));
-  $("tagBars").innerHTML = tags.map(t => `
-    <div class="tag-row">
-      <span class="tag-name">${t.name}</span>
-      <div class="bar-track"><div class="bar-fill" style="width:${(t.count/max*100).toFixed(0)}%"></div></div>
-      <span class="tag-count">${t.count}</span>
-    </div>
-  `).join("");
+async function loadMeta(){
+  const res = await fetch("/api/meta");
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || "Failed to load metadata");
+
+  stages = (data.pipelines[0]?.stages || []).sort((a,b)=>a.position-b.position);
+  stages.forEach((s,i) => stageColor[s.id] = COLORS[i % COLORS.length]);
+
+  (data.tags || []).forEach((t,i) => tagColor[t] = COLORS[(i+3) % COLORS.length]);
+
+  (data.users || []).forEach(u => userNames[u.id] = u.name);
+
+  $("stageFilter").innerHTML = `<option value="">All stages</option>` +
+    stages.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+  $("tagFilter").innerHTML = `<option value="">All tags</option>` +
+    (data.tags||[]).map(t => `<option value="${t}">${t}</option>`).join("");
+  $("userFilter").innerHTML = `<option value="">All users</option>` +
+    (data.users||[]).map(u => `<option value="${u.id}">${u.name}</option>`).join("");
 }
 
-function render(data){
-  $("totalContacts").textContent = data.totalContacts ?? "—";
-  $("totalOpps").textContent = data.totalOpportunities ?? "—";
-  $("totalConvos").textContent = data.totalConversations ?? "—";
-  $("pipelineName").textContent = data.pipelineName ? `pipeline: ${data.pipelineName}` : "";
-  renderTagBars(data.tags && data.tags.length ? data.tags : TAGS.map(n => ({name:n, count:0})));
-  $("updatedAt").textContent = "updated " + new Date().toLocaleTimeString();
+function renderMetrics(opps){
+  const total = opps.length;
+  const value = opps.filter(o=>["open","won"].includes(o.status)).reduce((s,o)=>s+o.monetaryValue,0);
+  const won = opps.filter(o=>o.status==="won").length;
+  const lost = opps.filter(o=>o.status==="lost").length;
+  const winRate = (won+lost) ? Math.round((won/(won+lost))*1000)/10 : 0;
+  const reps = new Set(opps.map(o=>o.assignedTo).filter(Boolean)).size;
+
+  $("metrics").innerHTML = `
+    <div class="metric" style="--m-color:var(--blue)"><div class="lbl">Total opportunities</div><div class="num">${total}</div><div class="note">across all ${stages.length} stages</div></div>
+    <div class="metric" style="--m-color:var(--pink)"><div class="lbl">Pipeline value</div><div class="num">${fmtMoney(value)}</div><div class="note">open + won</div></div>
+    <div class="metric" style="--m-color:var(--green)"><div class="lbl">Win rate</div><div class="num">${winRate}%</div><div class="note pos">${won} won · ${lost} lost</div></div>
+    <div class="metric" style="--m-color:var(--orange)"><div class="lbl">Active reps</div><div class="num">${reps}</div><div class="note">assigned in this pipeline</div></div>
+  `;
 }
 
-async function fetchLiveData(){
+function renderStageGrid(opps){
+  $("stageGrid").innerHTML = stages.map(s => {
+    const inStage = opps.filter(o => o.pipelineStageId === s.id);
+    const val = inStage.reduce((sum,o)=>sum+o.monetaryValue,0);
+    const col = stageColor[s.id];
+    const active = activeStageFilter === s.id ? "active" : "";
+    return `
+      <div class="stage-card ${active}" style="--s-color:${col.c}; --s-bg:${col.bg}" data-stage="${s.id}">
+        <span class="badge"><span class="badge-dot"></span>${s.name}</span>
+        <div class="num">${inStage.length}</div>
+        <div class="val">${fmtMoney(val)}</div>
+      </div>`;
+  }).join("");
+
+  document.querySelectorAll(".stage-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const id = card.dataset.stage;
+      activeStageFilter = activeStageFilter === id ? "" : id;
+      $("stageFilter").value = activeStageFilter;
+      page = 1;
+      applyFilters();
+    });
+  });
+}
+
+function applyFilters(){
+  const stageId = $("stageFilter").value;
+  const tag = $("tagFilter").value;
+  const userId = $("userFilter").value;
+  const start = $("startDate").value ? new Date($("startDate").value) : null;
+  const end = $("endDate").value ? new Date($("endDate").value) : null;
+  activeStageFilter = stageId;
+
+  let filtered = allOpps.filter(o => {
+    if(stageId && o.pipelineStageId !== stageId) return false;
+    if(tag && !o.tags.includes(tag)) return false;
+    if(userId && o.assignedTo !== userId) return false;
+    if(start && new Date(o.createdAt) < start) return false;
+    if(end && new Date(o.createdAt) > end) return false;
+    return true;
+  });
+
+  renderStageGrid(allOpps);
+  $("showingText").textContent = `Showing ${filtered.length} of ${allOpps.length} total opportunities`;
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  page = Math.min(page, totalPages);
+  const pageItems = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
+
+  if(!pageItems.length){
+    $("rows").innerHTML = `<tr class="empty-row"><td colspan="7">No opportunities match these filters.</td></tr>`;
+  }else{
+    $("rows").innerHTML = pageItems.map((o,i) => {
+      const idx = allOpps.indexOf(o) + 1;
+      const stageName = stages.find(s=>s.id===o.pipelineStageId)?.name || "—";
+      const sc = stageColor[o.pipelineStageId] || COLORS[0];
+      const assignedName = o.assignedTo ? (userNames[o.assignedTo] || "Rep") : null;
+      return `
+        <tr>
+          <td><div class="opp-name">${o.contactName}</div><div class="opp-sub">Opp #${String(idx).padStart(4,"0")}</div></td>
+          <td>${assignedName ? `<div class="assignee"><div class="avatar" style="background:${avatarColor(assignedName)}">${initials(assignedName)}</div>${assignedName}</div>` : `<span style="color:var(--ink-faint)">Unassigned</span>`}</td>
+          <td><span class="pill" style="background:${sc.bg}; color:${sc.c}">${stageName}</span></td>
+          <td>${o.tags.map(t=>{const tc=tagColor[t]||COLORS[0]; return `<span class="pill" style="background:${tc.bg}; color:${tc.c}; margin-right:4px;">${t}</span>`;}).join("") || "—"}</td>
+          <td class="val-cell">${fmtMoney(o.monetaryValue)}</td>
+          <td style="color:var(--ink-dim)">${fmtDate(o.createdAt)}</td>
+          <td style="color:var(--ink-dim)">${daysSince(o.lastStageChangeAt)}d</td>
+        </tr>`;
+    }).join("");
+  }
+
+  $("pageInfo").textContent = `Page ${page} of ${totalPages}`;
+  $("prevBtn").disabled = page <= 1;
+  $("nextBtn").disabled = page >= totalPages;
+}
+
+async function loadOpportunities(){
   $("errBox").style.display = "none";
   $("refreshBtn").disabled = true;
-  setStatus("loading", "syncing…");
   try{
-    const response = await fetch("/api/dashboard");
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-    render(data);
-    setStatus("on", "live");
+    const res = await fetch("/api/opportunities");
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || "Failed to load opportunities");
+    allOpps = data.opportunities;
+    renderMetrics(allOpps);
+    applyFilters();
+    setLive(true, "LIVE — REAL DATA");
   }catch(err){
-    console.error(err);
     $("errBox").textContent = "Couldn't refresh: " + err.message;
     $("errBox").style.display = "block";
-    setStatus("off", "sync failed");
+    setLive(false, "SYNC FAILED");
   }finally{
     $("refreshBtn").disabled = false;
   }
 }
 
-function scheduleAuto(){
-  if(autoTimer) clearInterval(autoTimer);
-  if($("autoToggle").checked){ autoTimer = setInterval(fetchLiveData, 45000); }
-}
+["stageFilter","tagFilter","userFilter","startDate","endDate"].forEach(id => {
+  $(id).addEventListener("change", () => { page = 1; applyFilters(); });
+});
+$("clearBtn").addEventListener("click", () => {
+  ["stageFilter","tagFilter","userFilter","startDate","endDate"].forEach(id => $(id).value = "");
+  activeStageFilter = ""; page = 1;
+  applyFilters();
+});
+$("prevBtn").addEventListener("click", () => { page--; applyFilters(); });
+$("nextBtn").addEventListener("click", () => { page++; applyFilters(); });
+$("refreshBtn").addEventListener("click", loadOpportunities);
 
-$("refreshBtn").addEventListener("click", fetchLiveData);
-$("autoToggle").addEventListener("change", scheduleAuto);
-renderTagBars(TAGS.map(n => ({name:n, count:0})));
-fetchLiveData();
-scheduleAuto();
+(async function init(){
+  try{
+    await loadMeta();
+    await loadOpportunities();
+    autoTimer = setInterval(loadOpportunities, 45000);
+  }catch(err){
+    $("errBox").textContent = "Couldn't load dashboard: " + err.message;
+    $("errBox").style.display = "block";
+    setLive(false, "LOAD FAILED");
+  }
+})();
 </script>
 </body>
 </html>
